@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CounterStrikeSharp.Api" Version="1.0.304" />
+    <PackageReference Include="Discord.Net" Version="3.17.1" />
+    <PackageReference Include="NewTonSoft.json" Version="13.0.3" />
+    <PackageReference Include="VkNet" Version="1.78.0" />
+	<ProjectReference Include="../LogsApi/LogsApi.csproj" />
+  </ItemGroup>
+
+</Project>

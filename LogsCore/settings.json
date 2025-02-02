@@ -1,0 +1,5 @@
+{
+    "plugin_name" : "LogsCore",
+    "has_api" : true,
+    "api_name" : "LogsApi"
+}

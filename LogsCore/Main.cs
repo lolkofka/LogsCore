@@ -11,6 +11,10 @@ public class PluginConfig : BasePluginConfig
 {
     public string DiscordBotToken { get; set; } = string.Empty;
     public string VkToken { get; set; } = string.Empty;
+    public Dictionary<string, Dictionary<string, DiscordEmbed>> Embeds {get; set;} = new()
+    {
+        {"example_plugin", new () {{"example_field", new DiscordEmbed()}}}
+    };  
 }
 
 public class Main : BasePlugin, IPluginConfig<PluginConfig>
@@ -24,11 +28,9 @@ public class Main : BasePlugin, IPluginConfig<PluginConfig>
 
     private PluginCapability<ILogsApi> _pluginCapability { get; } = new("logs:core");
     public PluginConfig Config {get; set;} = null!;
-    private static DiscordSocketClient _client;
-
+    private static DiscordSocketClient _client = null!;
     private Api _api = null!;
 
-    private ILogger _chatLogger = null!;
 
     public override void Load(bool hotReload)
     {
@@ -36,19 +38,11 @@ public class Main : BasePlugin, IPluginConfig<PluginConfig>
         _api = new();
         Capabilities.RegisterPluginCapability(_pluginCapability, () => _api);
         LogsCoreUtils.Api = _api;
-        _chatLogger = _api.CreateBaseLogger("ChatLogs", ConsoleColor.DarkYellow);
-        _chatLogger.CanLogToDiscord = true;
-        _chatLogger.CanLogToVk = false;
-        _chatLogger.CanLogToConsole = true;
-        _chatLogger.CanLogToFile = true;
-        _api.RegisterLogger(_chatLogger);
 
         if (Config.DiscordBotToken != string.Empty)
         Task.Run(async () => {
             await StartBot();
         });
-
-        AddCommandListener("say", OnSay);
     }
 
     private async Task StartBot()
@@ -91,23 +85,6 @@ public class Main : BasePlugin, IPluginConfig<PluginConfig>
         }
         await channel.SendMessageAsync(embed: embed);
     }
-
-    private HookResult OnSay(CCSPlayerController? player, CommandInfo commandInfo)
-    {
-        var msg = commandInfo.GetCommandString.Remove(0, 4);
-        var pName = player == null ? "<CONSOLE>" : $"{player.PlayerName} <{player.SteamID}>";
-        var embed = new DiscordEmbed();
-        embed.AddField("Игрок 😶", "```{player}```");
-        embed.AddField("Сообщение ✉️", "```{message}```");
-        embed.WithColor(255, 255, 0);
-        embed.SetKeyValues(["message", "player"], msg, pName);
-
-        _chatLogger.LogToAll($"{(pName)}: {msg}",
-        discordChannel: 1233769364545863681, discordEmebed: embed);
-
-        return HookResult.Continue;
-    }
-
     public override void Unload(bool hotReload)
     {
         if (Config.DiscordBotToken != string.Empty)

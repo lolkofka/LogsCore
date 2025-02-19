@@ -1,4 +1,5 @@
 ﻿using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Core.Capabilities;
 using CounterStrikeSharp.API.Modules.Commands;
 using Discord;
@@ -11,10 +12,6 @@ public class PluginConfig : BasePluginConfig
 {
     public string DiscordBotToken { get; set; } = string.Empty;
     public string VkToken { get; set; } = string.Empty;
-    public Dictionary<string, Dictionary<string, DiscordEmbed>> Embeds {get; set;} = new()
-    {
-        {"example_plugin", new () {{"example_field", new DiscordEmbed()}}}
-    };  
 }
 
 public class Main : BasePlugin, IPluginConfig<PluginConfig>
@@ -28,8 +25,19 @@ public class Main : BasePlugin, IPluginConfig<PluginConfig>
 
     private PluginCapability<ILogsApi> _pluginCapability { get; } = new("logs:core");
     public PluginConfig Config {get; set;} = null!;
+    public static PluginConfig sConfig {get; set;} = null!;
     private static DiscordSocketClient _client = null!;
     private Api _api = null!;
+
+    [ConsoleCommand("css_testlog")]
+    public void TestLog(CCSPlayerController? controller, CommandInfo info)
+    {
+        var logger = _api.CreateBaseLogger("Test");
+        logger.CanLogToDiscord = true;
+        var embed = new DiscordEmbed();
+        embed.AddField("test field", "test value");
+        logger.LogToAll("test log", discordEmebed: embed, discordChannel: 1233769364545863681);
+    }
 
 
     public override void Load(bool hotReload)
@@ -98,6 +106,7 @@ public class Main : BasePlugin, IPluginConfig<PluginConfig>
     public void OnConfigParsed(PluginConfig config)
     {
         Config = config;
+        sConfig = config;
     }
 }
 

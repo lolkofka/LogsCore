@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text.Json.Serialization;
 
 namespace LogsApi;
 
@@ -24,7 +19,8 @@ public class Field
     public string Name { get; set; }
     public string Value { get; set; }
     public bool InLine { get; set; }
-    public Field(string name, string value, bool inLine)
+    [JsonConstructor]
+    public Field(string name = "᲼", string value = "᲼", bool inLine = false)
     {
         Name = name;
         Value = value;
@@ -42,6 +38,7 @@ public class Author
     public string Name { get; set; }
     public string? IconUrl { get; set; }
     public string? Url { get; set; }
+    [JsonConstructor]
     public Author(string name, string? iconUrl = null, string? url = null)
     {
         Name = name;
@@ -55,12 +52,56 @@ public class Author
         Url = author.Url;
     }
 }
+
+public class Footer(string? iconUrl = null, string? text = null) {
+    public string? IconUrl {get; set;} = iconUrl;
+    public string? Text {get; set;} = text;
+}
+
 public class DiscordEmbed
 {
+    // WithTitle()
+    public string? Title {get ; set;} = null;
+    // WithDescription()
+    public string? Description {get ; set;} = null;
+    // WithThumbnailUrl()
+    public string? ThumbnailUrl {get ; set;} = null;
+    // WithTimestamp()
+    public DateTimeOffset? Timestamp {get; set;} = null;
+    // WithUrl()
+    public string? Url {get ; set;} = null;
+    // WithImageUrl()
+    public string? ImageUrl {get ; set;} = null;
+
+
+    public Footer? Footer {get; set;} = null;
     public Author? Author { get; set; } = null;
     public List<Field> Fields { get; set; } = new List<Field>();
-    public DColor Color = new (255, 255, 255);
+    public DColor Color {get; set;} = new (255, 255, 255);
+    [JsonIgnore]
     private Dictionary<string, object> KeyValues { get; set; } = new();
+    [JsonConstructor]
+    public DiscordEmbed(
+        List<Field> fields, 
+        DColor color,
+        Author? author = null,
+        string? title = null,
+        string? thumbnailUrl = null,
+        string? url = null,
+        string? imageUrl = null,
+        Footer? footer = null
+        )
+    {
+        Author = author;
+        Fields = fields;
+        Color = color;
+        Title = title;
+        ThumbnailUrl = thumbnailUrl;
+        Url = url;
+        ImageUrl = imageUrl;
+        Footer = footer;
+    }
+    public DiscordEmbed() {}
 
     public string ReplaceKeyValues(string text)
     {

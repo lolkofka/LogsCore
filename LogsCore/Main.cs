@@ -29,19 +29,6 @@ public class Main : BasePlugin, IPluginConfig<PluginConfig>
     private static DiscordSocketClient _client = null!;
     private Api _api = null!;
 
-
-    [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
-    [ConsoleCommand("css_testlog")]
-    public void TestLog(CCSPlayerController? controller, CommandInfo info)
-    {
-        var logger = _api.CreateBaseLogger("Test");
-        logger.CanLogToDiscord = true;
-        var embed = new DiscordEmbed();
-        embed.AddField("test field", "test value");
-        logger.LogToAll("test log", discordEmebed: embed, discordChannel: 1233769364545863681);
-    }
-
-
     public override void Load(bool hotReload)
     {
         Instance = this;

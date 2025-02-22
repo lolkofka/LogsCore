@@ -29,6 +29,8 @@ public class Main : BasePlugin, IPluginConfig<PluginConfig>
     private static DiscordSocketClient _client = null!;
     private Api _api = null!;
 
+
+    [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
     [ConsoleCommand("css_testlog")]
     public void TestLog(CCSPlayerController? controller, CommandInfo info)
     {

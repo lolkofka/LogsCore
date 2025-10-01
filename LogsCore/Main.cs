@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Core.Capabilities;
 using CounterStrikeSharp.API.Modules.Commands;
 using Discord;
 using Discord.WebSocket;
+using Discord.Webhook;
 using LogsApi;
 
 namespace LogsCore;
@@ -11,6 +12,7 @@ namespace LogsCore;
 public class PluginConfig : BasePluginConfig
 {
     public string DiscordBotToken { get; set; } = string.Empty;
+    public string DiscordWebhookUrl { get; set; } = string.Empty;
     public string VkToken { get; set; } = string.Empty;
 }
 
@@ -24,9 +26,10 @@ public class Main : BasePlugin, IPluginConfig<PluginConfig>
     public static BasePlugin Instance = null!;
 
     private PluginCapability<ILogsApi> _pluginCapability { get; } = new("logs:core");
-    public PluginConfig Config {get; set;} = null!;
-    public static PluginConfig sConfig {get; set;} = null!;
-    private static DiscordSocketClient _client = null!;
+    public PluginConfig Config { get; set; } = null!;
+    public static PluginConfig sConfig { get; set; } = null!;
+    private static DiscordSocketClient? _client;
+    private static DiscordWebhookClient? _webhookClient;
     private Api _api = null!;
 
     public override void Load(bool hotReload)
@@ -36,17 +39,23 @@ public class Main : BasePlugin, IPluginConfig<PluginConfig>
         Capabilities.RegisterPluginCapability(_pluginCapability, () => _api);
         LogsCoreUtils.Api = _api;
 
-        if (Config.DiscordBotToken != string.Empty)
-        Task.Run(async () => {
-            await StartBot();
-        });
+        if (!string.IsNullOrEmpty(Config.DiscordBotToken))
+        {
+            Task.Run(async () => { await StartBot(); });
+        }
+        if (!string.IsNullOrEmpty(Config.DiscordWebhookUrl))
+        {
+            _webhookClient = new DiscordWebhookClient(Config.DiscordWebhookUrl);
+            Console.WriteLine("LogsCore DISCORD: webhook client initialized");
+        }
     }
 
     private async Task StartBot()
     {
         try
         {
-            var config = new DiscordSocketConfig() {
+            var config = new DiscordSocketConfig()
+            {
                 GatewayIntents = GatewayIntents.MessageContent
             };
             _client = new DiscordSocketClient(config);
@@ -72,24 +81,31 @@ public class Main : BasePlugin, IPluginConfig<PluginConfig>
         Console.WriteLine("LogsCore DISCORD: " + message.Message);
     }
 
-    public static async Task SendEmbed(Embed embed, ulong channelId)
+    public static async Task SendEmbed(Embed embed, ulong channelId = 0)
     {
-        Console.WriteLine("Send embed");
-        var channel = await _client.GetChannelAsync(channelId) as IMessageChannel;
-        if (channel == null)
+
+        if (_client != null && channelId != 0)
         {
-            return;
+            Console.WriteLine("Send embed with discord bot");
+            var channel = await _client.GetChannelAsync(channelId) as IMessageChannel;
+            if (channel == null) return;
+            await channel.SendMessageAsync(embed: embed);
         }
-        await channel.SendMessageAsync(embed: embed);
+        if (_webhookClient != null)
+        {
+            Console.WriteLine("Send embed with webhook");
+            await _webhookClient.SendMessageAsync(text: "Aboba");
+        }
     }
+
     public override void Unload(bool hotReload)
     {
-        if (Config.DiscordBotToken != string.Empty)
+        if (_client != null)
         {
-            Task.Run(async () => {
-                await _client.StopAsync();
-            });
+            Task.Run(async () => { await _client.StopAsync(); });
         }
+
+        _webhookClient?.Dispose();
     }
 
     public void OnConfigParsed(PluginConfig config)

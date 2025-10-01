@@ -94,7 +94,7 @@ public class Main : BasePlugin, IPluginConfig<PluginConfig>
         if (_webhookClient != null)
         {
             Console.WriteLine("Send embed with webhook");
-            await _webhookClient.SendMessageAsync(text: "Aboba");
+            await _webhookClient.SendMessageAsync(embeds: new[] { embed });
         }
     }
 
